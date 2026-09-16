@@ -1,0 +1,46 @@
+{
+  "architecture": "Aly Omega V3",
+  "version": "3.0.0",
+  "design_principle": "Hierarchical multi-agent operating network with deterministic routing, shared ACP language, validation gates, and scalable specialization.",
+  "logical_agent_capacity": 4096,
+  "layers": [
+    {"id":"L0","name":"Human Intent","role":"business intent, request, constraints, desired outcome","capacity":1},
+    {"id":"L1","name":"Executive Intelligence","role":"priority, strategic context, decision framing","capacity":32},
+    {"id":"L2","name":"Global Orchestrator","role":"task decomposition, routing, state, dependency graph","capacity":16},
+    {"id":"L3","name":"Domain Orchestrators","role":"domain-level coordination and workload distribution","capacity":64},
+    {"id":"L4","name":"Domain Managers","role":"supervision of specialist clusters","capacity":160},
+    {"id":"L5","name":"Specialist Agents","role":"domain expertise and task execution","capacity":512},
+    {"id":"L6","name":"Expert Sub-Agents","role":"narrow expertise, verification, synthesis, optimization","capacity":1024},
+    {"id":"L7","name":"Micro Agents","role":"atomic reasoning, extraction, comparison, transformation","capacity":1536},
+    {"id":"L8","name":"Evidence & Tool Agents","role":"web, documents, APIs, structured data, calculations","capacity":512},
+    {"id":"L9","name":"Validation & Red Team","role":"constraint, evidence, contradiction, risk and adversarial checks","capacity":128},
+    {"id":"L10","name":"Learning & Memory","role":"feedback, error learning, memory consolidation, routing optimization","capacity":96},
+    {"id":"L11","name":"Final Gatekeeper","role":"release decision, output integrity, audit trail","capacity":15}
+  ],
+  "communication_protocol": {
+    "name":"ACP-X",
+    "version":"3.0",
+    "required_fields":["MESSAGE_ID","TASK","OBJECTIVE","CONTEXT","SCOPE","CAPABILITY_REQUIRED","EVIDENCE","FINDINGS","ASSUMPTIONS","RISKS","CONFIDENCE","DEPENDENCIES","REQUEST","RESPONSE","HANDOFF","VALIDATION_STATUS","ESCALATION","MEMORY_SIGNAL","LEARNING_SIGNAL","TRACE_ID"],
+    "rules":["Agents never depend on free-form hidden state between stages.","Every handoff carries a trace id.","Evidence is distinguishable from findings and assumptions.","Validation status is explicit and must be updated at gates.","Agents may request escalation instead of bypassing authority.","Only authorized layers may mutate shared state."]
+  },
+  "routing_model": {
+    "default":"hierarchical",
+    "patterns":["parent-child delegation","specialist fan-out","evidence fan-out","validation fan-in","red-team challenge","final synthesis"],
+    "dynamic_depth":true,
+    "max_parallel_branches":32,
+    "fallback_required":true,
+    "human_approval_points":["external commitment","financial commitment","policy exception","high-risk release"]
+  },
+  "quality_gates":["Intake Gate","Classification Gate","Evidence Gate","Constraint Gate","Commercial Gate","Operations Gate","Validation Gate","Red Team Gate","Learning Gate","Final Release Gate"],
+  "visualization": {
+    "agent_rendering":"points",
+    "space":"large_spherical_field",
+    "labels":"hidden_by_default",
+    "active_agent":"glow_and_scale",
+    "task_packet":"green_motion_path",
+    "acp_traffic":"blue_motion_paths",
+    "validation":"gold_wave",
+    "red_team":"red_pulse",
+    "learning":"purple_feedback_loop"
+  }
+}
