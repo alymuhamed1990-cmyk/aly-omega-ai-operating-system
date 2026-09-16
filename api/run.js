@@ -1,52 +1,14 @@
-export default async function handler(req, res) {
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-
-  if (req.method === 'OPTIONS') return res.status(204).end();
-  if (req.method !== 'POST') return res.status(405).json({ error: 'POST only' });
-
-  const task = String(req.body?.task || '').trim();
-  if (!task) return res.status(400).json({ error: 'task is required' });
-
-  const url = new URL('https://html.duckduckgo.com/html/');
-  url.searchParams.set('q', task);
-
-  const r = await fetch(url, {
-    headers: {
-      'User-Agent': 'Mozilla/5.0 (compatible; Aly-Omega/1.0)'
-    }
-  });
-
-  if (!r.ok) return res.status(502).json({ error: 'SEARCH_PROVIDER_ERROR', provider: 'DuckDuckGo', status: r.status });
-
-  const html = await r.text();
-  const results = [];
-  const blockRe = /<div[^>]+class="result[^>]*>([\s\S]*?)<\/div>\s*<\/div>/gi;
-  let match;
-  const clean = s => s.replace(/<[^>]+>/g, ' ').replace(/&amp;/g, '&').replace(/&quot;/g, '"').replace(/&#x27;/g, "'").replace(/&#39;/g, "'").replace(/\s+/g, ' ').trim();
-
-  while ((match = blockRe.exec(html)) && results.length < 8) {
-    const block = match[1];
-    const link = block.match(/<a[^>]+class="result__a"[^>]+href="([^"]+)"[^>]*>([\s\S]*?)<\/a>/i);
-    if (!link) continue;
-    const desc = block.match(/<(?:a|div)[^>]+class="result__snippet"[^>]*>([\s\S]*?)<\/(?:a|div)>/i);
-    results.push({ rank: results.length + 1, title: clean(link[2]), url: link[1], description: desc ? clean(desc[1]) : '' });
-  }
-
-  return res.status(200).json({
-    ok: true,
-    task,
-    provider: 'DuckDuckGo HTML',
-    classification: 'RESEARCH / LIVE WEB',
-    stages: [
-      { stage: 1, name: 'Intent / Intake', status: 'completed' },
-      { stage: 2, name: 'Classification', status: 'completed' },
-      { stage: 3, name: 'Intelligence / Live Web Search', status: 'completed', result_count: results.length },
-      { stage: 4, name: 'Evidence', status: results.length ? 'completed' : 'empty' },
-      { stage: 5, name: 'Validation Gate', status: 'completed' },
-      { stage: 6, name: 'Final Gatekeeper', status: 'completed' }
-    ],
-    results
-  });
+function decode(s=''){return s.replace(/<[^>]*>/g,' ').replace(/&amp;/g,'&').replace(/&quot;/g,'"').replace(/&#39;/g,"'").replace(/&#x27;/g,"'").replace(/&nbsp;/g,' ').replace(/\s+/g,' ').trim()}
+function extractBing(html){const out=[];const re=/<li class="b_algo"[\s\S]*?<h2>([\s\S]*?)<\/h2>[\s\S]*?<\/li>/gi;let m;while((m=re.exec(html))&&out.length<10){const b=m[0],a=b.match(/<h2>[\s\S]*?<a[^>]+href="([^"]+)"[^>]*>([\s\S]*?)<\/a>/i),p=b.match(/<p[^>]*>([\s\S]*?)<\/p>/i);if(a)out.push({rank:out.length+1,title:decode(a[2]),url:a[1],description:p?decode(p[1]):''})}return out}
+function extractDDG(html){const out=[];const re=/<div[^>]+class="result[^"]*"[\s\S]*?<\/div>\s*<\/div>/gi;let m;while((m=re.exec(html))&&out.length<10){const b=m[0],a=b.match(/<a[^>]+class="result__a"[^>]+href="([^"]+)"[^>]*>([\s\S]*?)<\/a>/i),p=b.match(/class="result__snippet"[^>]*>([\s\S]*?)<\//i);if(a)out.push({rank:out.length+1,title:decode(a[2]),url:a[1],description:p?decode(p[1]):''})}return out}
+async function provider(url,parser){try{const r=await fetch(url,{headers:{'User-Agent':'Mozilla/5.0 (compatible; Aly-Omega/2.0)','Accept':'text/html,application/xhtml+xml'}});if(!r.ok)return [];const html=await r.text();return parser(html)}catch{return []}}
+export default async function handler(req,res){
+ res.setHeader('Access-Control-Allow-Origin','*');res.setHeader('Access-Control-Allow-Methods','POST,OPTIONS');res.setHeader('Access-Control-Allow-Headers','Content-Type');
+ if(req.method==='OPTIONS')return res.status(204).end();if(req.method!=='POST')return res.status(405).json({error:'POST only'});
+ const task=String(req.body?.task||'').trim();if(!task)return res.status(400).json({error:'task is required'});
+ const q=encodeURIComponent(task);let results=[];let providerName='';
+ results=await provider(`https://www.bing.com/search?q=${q}&count=10`,extractBing);if(results.length)providerName='Bing HTML';
+ if(!results.length){results=await provider(`https://html.duckduckgo.com/html/?q=${q}`,extractDDG);if(results.length)providerName='DuckDuckGo HTML'}
+ if(!results.length){const wiki=await provider(`https://en.wikipedia.org/w/api.php?action=opensearch&search=${q}&limit=10&namespace=0&format=json`,html=>{try{const j=JSON.parse(html);return(j[1]||[]).map((title,i)=>({rank:i+1,title,url:(j[3]||[])[i]||'',description:(j[2]||[])[i]||''}))}catch{return[]}});results=wiki;providerName=results.length?'Wikipedia fallback':'No provider';}
+ return res.status(200).json({ok:true,task,provider:providerName,classification:'RESEARCH / FREE LIVE WEB',stages:[{stage:1,name:'Intent / Intake',status:'completed'},{stage:2,name:'Classification',status:'completed'},{stage:3,name:'Intelligence / Live Web Search',status:results.length?'completed':'empty',result_count:results.length},{stage:4,name:'Evidence',status:results.length?'completed':'empty'},{stage:5,name:'Validation Gate',status:'completed'},{stage:6,name:'Final Gatekeeper',status:'completed'}],results});
 }
