@@ -1,28 +1,43 @@
 export default async function handler(req, res) {
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+
+  if (req.method === 'OPTIONS') return res.status(204).end();
   if (req.method !== 'POST') return res.status(405).json({ error: 'POST only' });
+
   const task = String(req.body?.task || '').trim();
   if (!task) return res.status(400).json({ error: 'task is required' });
-  const key = process.env.BRAVE_SEARCH_API_KEY;
-  if (!key) return res.status(503).json({ error: 'SEARCH_BACKEND_NOT_CONFIGURED', message: 'Set BRAVE_SEARCH_API_KEY in the runtime environment.' });
 
-  const url = new URL('https://api.search.brave.com/res/v1/web/search');
+  const url = new URL('https://html.duckduckgo.com/html/');
   url.searchParams.set('q', task);
-  url.searchParams.set('count', '8');
-  url.searchParams.set('safesearch', 'moderate');
 
-  const r = await fetch(url, { headers: { Accept: 'application/json', 'X-Subscription-Token': key } });
-  if (!r.ok) return res.status(502).json({ error: 'SEARCH_PROVIDER_ERROR', status: r.status });
-  const data = await r.json();
-  const results = (data.web?.results || []).map((x, i) => ({
-    rank: i + 1,
-    title: x.title || '',
-    url: x.url || '',
-    description: x.description || ''
-  }));
+  const r = await fetch(url, {
+    headers: {
+      'User-Agent': 'Mozilla/5.0 (compatible; Aly-Omega/1.0)'
+    }
+  });
+
+  if (!r.ok) return res.status(502).json({ error: 'SEARCH_PROVIDER_ERROR', provider: 'DuckDuckGo', status: r.status });
+
+  const html = await r.text();
+  const results = [];
+  const blockRe = /<div[^>]+class="result[^>]*>([\s\S]*?)<\/div>\s*<\/div>/gi;
+  let match;
+  const clean = s => s.replace(/<[^>]+>/g, ' ').replace(/&amp;/g, '&').replace(/&quot;/g, '"').replace(/&#x27;/g, "'").replace(/&#39;/g, "'").replace(/\s+/g, ' ').trim();
+
+  while ((match = blockRe.exec(html)) && results.length < 8) {
+    const block = match[1];
+    const link = block.match(/<a[^>]+class="result__a"[^>]+href="([^"]+)"[^>]*>([\s\S]*?)<\/a>/i);
+    if (!link) continue;
+    const desc = block.match(/<(?:a|div)[^>]+class="result__snippet"[^>]*>([\s\S]*?)<\/(?:a|div)>/i);
+    results.push({ rank: results.length + 1, title: clean(link[2]), url: link[1], description: desc ? clean(desc[1]) : '' });
+  }
 
   return res.status(200).json({
     ok: true,
     task,
+    provider: 'DuckDuckGo HTML',
     classification: 'RESEARCH / LIVE WEB',
     stages: [
       { stage: 1, name: 'Intent / Intake', status: 'completed' },
