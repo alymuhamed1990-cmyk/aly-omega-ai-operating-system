@@ -1,0 +1,16 @@
+{
+  "$schema":"https://json-schema.org/draft/2020-12/schema",
+  "$id":"aly-omega/task/2.1",
+  "type":"object",
+  "required":["task_id","request","classification","constraints","priority","state"],
+  "properties":{
+    "task_id":{"type":"string"},
+    "request":{"type":"string"},
+    "classification":{"type":"string"},
+    "constraints":{"type":"object"},
+    "priority":{"enum":["LOW","NORMAL","HIGH","CRITICAL"]},
+    "state":{"enum":["INTAKE","CLASSIFIED","RESEARCHING","PLANNING","EXECUTING","VALIDATING","RED_TEAM","GATEKEEPING","COMPLETED","BLOCKED"]},
+    "owner":{"type":"string"},
+    "created_at":{"type":"string"}
+  }
+}
