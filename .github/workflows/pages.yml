@@ -23,10 +23,22 @@ jobs:
         uses: actions/configure-pages@v5
         with:
           enablement: true
+      - name: Build Pages site
+        shell: bash
+        run: |
+          rm -rf _site
+          mkdir -p _site
+          cp -R visualization/. _site/
+          cp -R agents _site/agents
+          cp -R demo _site/demo
+          # The visualization files are published at the site root,
+          # so convert their repository-relative asset paths to site-relative paths.
+          sed -i 's#../agents/#agents/#g; s#../demo/#demo/#g' _site/*.html
+          touch _site/.nojekyll
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: './visualization'
+          path: './_site'
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
