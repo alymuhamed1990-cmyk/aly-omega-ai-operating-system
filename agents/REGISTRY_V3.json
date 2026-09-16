@@ -1,0 +1,27 @@
+{
+  "version":"3.0.0",
+  "architecture":"Aly Omega V3",
+  "core_agents":168,
+  "logical_agent_capacity":4096,
+  "instantiation_model":"lazy-specialization",
+  "note":"4096 logical agent slots are defined by capability and specialization rules. They do not imply 4096 independent model processes running simultaneously.",
+  "domains": {
+    "core":{"manager_count":16,"specialist_count":96,"micro_count":256},
+    "intelligence":{"manager_count":16,"specialist_count":96,"micro_count":384},
+    "commercial":{"manager_count":16,"specialist_count":96,"micro_count":256},
+    "operations":{"manager_count":16,"specialist_count":96,"micro_count":256},
+    "quality":{"manager_count":16,"specialist_count":64,"micro_count":160},
+    "learning":{"manager_count":16,"specialist_count":64,"micro_count":128},
+    "executive":{"manager_count":16,"specialist_count":64,"micro_count":96},
+    "evidence_tools":{"manager_count":16,"specialist_count":96,"micro_count":256}
+  },
+  "agent_naming":{
+    "pattern":"OMEGA-{LAYER}-{DOMAIN}-{CAPABILITY}-{INSTANCE}",
+    "example":"OMEGA-L7-INTEL-EVIDENCE-0042",
+    "stable_ids":true,
+    "human_labels_hidden_in_visualization":true
+  },
+  "specialization_axes":["destination","product","customer_segment","supplier_type","language","market","channel","workflow_stage","evidence_type","risk_class","tool_capability","commercial_model"],
+  "allowed_layers":["L1","L2","L3","L4","L5","L6","L7","L8","L9","L10","L11"],
+  "orchestration_rules":["A parent assigns work only to compatible children.","A child returns ACP-X output to its parent.","Cross-domain transfers pass through an orchestrator or explicit capability bridge.","Quality layers can challenge upstream outputs.","Learning signals update routing and playbooks but do not silently alter released results.","Final Gatekeeper releases only validated outputs."]
+}
