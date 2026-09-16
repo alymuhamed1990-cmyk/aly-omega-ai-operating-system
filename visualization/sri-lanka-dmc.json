@@ -1,0 +1,16 @@
+{
+  "task":"Find B2B DMC suppliers in Sri Lanka suitable for a Saudi travel agency",
+  "timestamp":"2026-09-16",
+  "status":"research_snapshot",
+  "suppliers":[
+    {"name":"Travelo DMC","fit":"B2B / trade-only Sri Lanka specialist","evidence":["SLTDA-licensed","Ground handling, hotels, transfers, tours, groups and MICE","Trade registration and manual approval required","Island-wide operations"],"source":"https://www.travelodmc.com/"},
+    {"name":"Delft Tours","fit":"B2B inbound DMC with net-rate / white-label model","evidence":["30+ years destination expertise","Net rates","24/7 in-destination support","FIT, groups, MICE","White-label documentation"],"source":"https://delfttours.com/b2b-partnerships"},
+    {"name":"Zelenso Travel","fit":"B2B inbound DMC for overseas tour operators","evidence":["Confidential wholesale net rates","24-hour quote target","Private tailor-made tours","Ground handling across Sri Lanka","WhatsApp partner desk"],"source":"https://zelenso.com/travel-trade"},
+    {"name":"Yatours","fit":"B2B ground partner for overseas agents","evidence":["Private FIT and small groups","Agent portal for leads","Accommodation, transfers and excursions","Island-wide ground handling","Colombo-based operations"],"source":"https://www.yatours.com/travel-agent-partnerships"},
+    {"name":"Lanka Travel Gateway","fit":"B2B licensed Sri Lankan ground operator","evidence":["Confidential net rates","Ground handling across Sri Lanka","Dedicated account manager","24/7 on-trip support","Partner registration workflow"],"source":"https://www.lankatravelgateway.com/partner-with-us"},
+    {"name":"Lakpura","fit":"Established DMC / trade partner","evidence":["Works with travel agents, tour operators and wholesalers","Bespoke luxury, group and adventure itineraries","Sri Lanka-based DMC","Inbound handling experience"],"source":"https://www.lakpura.com/pages/agents"},
+    {"name":"Let's See Asia","fit":"Sri Lanka & Maldives inbound DMC","evidence":["Incoming tourism is core business","One-stop incoming services","Sri Lanka-wide coverage","Value-for-money positioning"],"source":"https://www.letsseeasia.com/"}
+  ],
+  "validation":["B2B/trade orientation","Sri Lanka local operation","Ground handling capability","Commercial/wholesale evidence","Current public source checked"],
+  "note":"This demo uses a current public-web research snapshot. The visualization is a live execution simulation; the supplier evidence is not being freshly crawled by the GitHub Pages browser at task time."
+}
