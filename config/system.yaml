@@ -1,0 +1,39 @@
+system:
+  name: Aly Omega AI Operating System
+  version: 2.1.0
+  mode: production
+  evidence_first: true
+  explicit_assumptions: true
+  default_confidence_threshold: 0.80
+
+orchestrator:
+  max_parallel_agents: 8
+  require_acp: true
+  require_validation_between_stages: true
+  require_final_gatekeeper: true
+
+quality_gates:
+  evidence:
+    required_for: [research, analysis, recommendation, supplier, commercial, decision]
+  constraint:
+    required: true
+  contradiction:
+    required: true
+  red_team:
+    trigger: [high_risk, low_confidence, external_commitment, financial_impact, conflicting_evidence]
+  final_gate:
+    required_for: [external_output, consequential_decision, customer_commitment, supplier_commitment]
+
+communication:
+  protocol: ACP
+  fields: [TASK, CONTEXT, EVIDENCE, FINDINGS, ASSUMPTIONS, RISKS, CONFIDENCE, RECOMMENDATION, DEPENDENCIES, VALIDATION_STATUS]
+
+job_search:
+  evaluation_order: [industry, business_model, functional_fit, seniority, location_eligibility, current_status, career_value, recommendation]
+  title_only_matching: false
+
+learning:
+  capture_failures: true
+  capture_corrections: true
+  update_playbooks: true
+  preserve_human_overrides: true
