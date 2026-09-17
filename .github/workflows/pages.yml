@@ -34,6 +34,8 @@ jobs:
           # The visualization files are published at the site root,
           # so convert their repository-relative asset paths to site-relative paths.
           sed -i 's#../agents/#agents/#g; s#../demo/#demo/#g' _site/*.html
+          # Q4 is used for WebGPU. WASM/CPU uses Q8 for the ONNX Runtime backend.
+          sed -i "s/device:'wasm',dtype:'q4'/device:'wasm',dtype:'q8'/g" _site/live-v10.html
           touch _site/.nojekyll
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
