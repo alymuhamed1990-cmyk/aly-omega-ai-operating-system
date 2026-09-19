@@ -24,8 +24,18 @@ const server=http.createServer(async(req,res)=>{
       return await handler(req,res);
     }
 
-    const requested=req.url==='/' ? 'visualization/index.html' : decodeURIComponent(req.url.split('?')[0]).replace(/^\/+/, '');
-    const full=req.url==='/' ? path.join(root,'visualization','index.html') : path.normalize(path.join(root,requested));
+    if(req.url==='/' || req.url==='/index.html'){
+      const entry=new URL('./visualization/index.html',import.meta.url);
+      const data=await fs.readFile(entry);
+      res.writeHead(200,{'Content-Type':'text/html; charset=utf-8','Cache-Control':'no-store'});
+      return res.end(data);
+    }
+    if(req.url==='/health'){
+      res.writeHead(200,{'Content-Type':'application/json; charset=utf-8','Cache-Control':'no-store'});
+      return res.end(JSON.stringify({status:'ok',service:'aly-omega',runtime:'railway'}));
+    }
+    const requested=decodeURIComponent(req.url.split('?')[0]).replace(/^\/+/, '');
+    const full=path.normalize(path.join(root,requested));
     if(!full.startsWith(root+path.sep)&&full!==root) return res.writeHead(403).end('Forbidden');
     const data=await fs.readFile(full);
     const ext=path.extname(full);
