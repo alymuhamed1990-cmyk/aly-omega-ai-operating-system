@@ -24,8 +24,8 @@ const server=http.createServer(async(req,res)=>{
       return await handler(req,res);
     }
 
-    const requested=req.url==='/' ? 'visualization/operations.html' : decodeURIComponent(req.url.split('?')[0]).replace(/^\/+/, '');
-    const full=req.url==='/' ? path.join(root,'visualization','operations.html') : path.normalize(path.join(root,requested));
+    const requested=req.url==='/' ? 'visualization/index.html' : decodeURIComponent(req.url.split('?')[0]).replace(/^\/+/, '');
+    const full=req.url==='/' ? path.join(root,'visualization','index.html') : path.normalize(path.join(root,requested));
     if(!full.startsWith(root+path.sep)&&full!==root) return res.writeHead(403).end('Forbidden');
     const data=await fs.readFile(full);
     const ext=path.extname(full);
