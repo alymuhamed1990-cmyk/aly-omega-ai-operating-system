@@ -49,4 +49,4 @@ const server=http.createServer(async(req,res)=>{
   }
 });
 
-server.listen(port,'0.0.0.0',()=>console.log('Aly Omega Railway runtime listening on '+port));
+server.listen(port,'0.0.0.0',()=>console.log('Aly Omega Railway runtime listening on '+port+' (PORT='+process.env.PORT+')'));
