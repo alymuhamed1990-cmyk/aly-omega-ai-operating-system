@@ -70,7 +70,7 @@ async function search(task){
   }
   const responses=await Promise.all(calls.map(async([source,url])=>{
     const r=await get(url);
-    return r.ok?parseSearchHTML(r.text,url):[];
+    const parsed=r.ok?parseSearchHTML(r.text,url):[]; console.log('SEARCH_PROVIDER',source,r.status,parsed.length); return parsed;
   }));
   const map=new Map();
   for(const list of responses) for(const x of list){
