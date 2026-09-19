@@ -4,47 +4,52 @@ const host=u=>{try{return new URL(u).hostname.replace(/^www\./,'')}catch{return'
 const unwrap=u=>{try{const z=new URL(u);return z.searchParams.get('u')||z.searchParams.get('uddg')||z.searchParams.get('url')||u}catch{return u}};
 const blocked=/bing\.com|google\.|duckduckgo\.com|search\.brave\.com|jina\.ai/i;
 async function get(url){const c=new AbortController(),t=setTimeout(()=>c.abort(),8000);try{const r=await fetch(url,{signal:c.signal,headers:{'User-Agent':'Mozilla/5.0 AlyOmegaResearch/3.0'}});return{ok:r.ok,status:r.status,text:await r.text()}}catch(e){return{ok:false,status:0,text:'',error:e.message}}finally{clearTimeout(t)}}
+function tagValue(item,tag){
+  const re=new RegExp("<"+tag+">([\\s\\S]*?)</"+tag+">","i");
+  const m=String(item||"").match(re);
+  return m?m[1]:"";
+}
 function parseRSS(h){
   const out=[];
-  const items=String(h||'').split('<item>').slice(1);
-  for(const item of items.slice(0,20)){
-    const link=(item.match(/<link>([\\s\\S]*?)<\\/link>/i)||[])[1];
-    const title=(item.match(/<title>([\\s\\S]*?)<\\/title>/i)||[])[1];
-    const desc=(item.match(/<description>([\\s\\S]*?)<\\/description>/i)||[])[1];
+  const items=String(h||"").split("<item>").slice(1,21);
+  for(const item of items){
+    const link=tagValue(item,"link");
+    const title=tagValue(item,"title");
+    const desc=tagValue(item,"description");
     if(link&&title){
       const url=unwrap(clean(link));
-      if(/^https?:\\/\\//i.test(url)&&!blocked.test(host(url)))
-        out.push({url,title:clean(title),snippet:desc?clean(desc):''});
+      if(/^https?:\/\//i.test(url)&&!blocked.test(host(url)))
+        out.push({url,title:clean(title),snippet:desc?clean(desc):""});
     }
   }
   return out;
 }
 function parseSearchHTML(h){
   const out=[];
-  const re=/<a[^>]+href=["']([^"']+)["'][^>]*>([\\s\\S]*?)<\\/a>/gi;
+  const re=new RegExp("<a[^>]+href=[\\\"']([^\\\"']+)[\\\"'][^>]*>([\\s\\S]*?)</a>","gi");
   let m;
-  while((m=re.exec(String(h||'')))&&out.length<30){
-    const url=unwrap(clean(m[1])),title=clean(m[2]);
-    if(/^https?:\\/\\//i.test(url)&&title.length>3&&!blocked.test(host(url)))
-      out.push({url,title,snippet:''});
+  while((m=re.exec(String(h||"")))&&out.length<30){
+    const url=unwrap(clean(m[1]));
+    const title=clean(m[2]);
+    if(/^https?:\/\//i.test(url)&&title.length>3&&!blocked.test(host(url)))
+      out.push({url,title,snippet:""});
   }
   return out;
 }
 function parseMarkdown(h){
   const out=[];
-  const re=/\\[([^\\]]+)\\]\\((https?:\\/\\/[^)\\s]+)\\)/g;
+  const re=/\[([^\]]+)\]\((https?:\/\/[^)\s]+)\)/g;
   let m;
-  while((m=re.exec(String(h||'')))&&out.length<30){
-    const url=unwrap(m[2]),title=clean(m[1]);
+  while((m=re.exec(String(h||"")))&&out.length<30){
+    const url=unwrap(m[2]);
+    const title=clean(m[1]);
     if(title.length>3&&!blocked.test(host(url)))
-      out.push({url,title,snippet:''});
+      out.push({url,title,snippet:""});
   }
   return out;
 }
 function parseAny(h,source){
-  const a=source==='Google via Jina'
-    ?parseMarkdown(h)
-    :[...parseRSS(h),...parseSearchHTML(h)];
+  const a=source==="Google via Jina"?parseMarkdown(h):[...parseRSS(h),...parseSearchHTML(h)];
   const seen=new Set();
   return a.filter(x=>{
     if(seen.has(x.url)) return false;
