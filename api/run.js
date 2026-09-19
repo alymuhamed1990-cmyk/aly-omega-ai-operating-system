@@ -29,8 +29,9 @@ function parseSearchHTML(h,base='https://www.bing.com'){
   const re=new RegExp("<a[^>]+href=[\\\"']([^\\\"']+)[\\\"'][^>]*>([\\s\\S]*?)</a>","gi");
   let m;
   while((m=re.exec(String(h||"")))&&out.length<30){
-    let url=unwrap(clean(m[1]));
-    try{if(url.startsWith('/')) url=new URL(url,base).toString()}catch{}
+    let raw=clean(m[1]);
+    try{if(raw.startsWith('/')) raw=new URL(raw,base).toString()}catch{}
+    const url=unwrap(raw);
     const title=clean(m[2]);
     if(/^https?:\/\//i.test(url)&&title.length>3&&!blocked.test(host(url)))
       out.push({url,title,snippet:""});
