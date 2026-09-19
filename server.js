@@ -24,7 +24,7 @@ const server=http.createServer(async(req,res)=>{
       return await handler(req,res);
     }
 
-    const requested=req.url==='/'?'/visualization/operations.html':decodeURIComponent(req.url.split('?')[0]);
+    const requested=req.url==='/'?'visualization/operations.html':decodeURIComponent(req.url.split('?')[0]).replace(/^\/+/, '');
     const full=path.normalize(path.join(root,requested));
     if(!full.startsWith(root+path.sep)&&full!==root) return res.writeHead(403).end('Forbidden');
     const data=await fs.readFile(full);
@@ -32,7 +32,8 @@ const server=http.createServer(async(req,res)=>{
     const types={'.html':'text/html; charset=utf-8','.js':'text/javascript; charset=utf-8','.css':'text/css; charset=utf-8','.json':'application/json; charset=utf-8','.svg':'image/svg+xml','.png':'image/png'};
     res.writeHead(200,{'Content-Type':types[ext]||'application/octet-stream','Cache-Control':'no-cache'});
     res.end(data);
-  }catch{
+  }catch(err){
+    console.error('Aly Omega request error:',err);
     res.writeHead(404,{'Content-Type':'text/plain; charset=utf-8'});
     res.end('Not found');
   }
