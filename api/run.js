@@ -1,7 +1,7 @@
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
 const clean=s=>String(s||'').replace(/<[^>]+>/g,' ').replace(/&amp;/g,'&').replace(/\s+/g,' ').trim();
 const host=u=>{try{return new URL(u).hostname.replace(/^www\./,'')}catch{return''}};
-const unwrap=u=>{try{const z=new URL(u);return z.searchParams.get('u')||z.searchParams.get('uddg')||z.searchParams.get('url')||u}catch{return u}};
+const unwrap=u=>{try{const z=new URL(u);return z.searchParams.get('u')||z.searchParams.get('uddg')||z.searchParams.get('url')||z.searchParams.get('q')||u}catch{return u}};
 const blocked=/bing\.com|google\.|duckduckgo\.com|search\.brave\.com|jina\.ai/i;
 async function get(url){const c=new AbortController(),t=setTimeout(()=>c.abort(),8000);try{const r=await fetch(url,{signal:c.signal,headers:{'User-Agent':'Mozilla/5.0 AlyOmegaResearch/3.0'}});return{ok:r.ok,status:r.status,text:await r.text()}}catch(e){return{ok:false,status:0,text:'',error:e.message}}finally{clearTimeout(t)}}
 function tagValue(item,tag){
@@ -59,39 +59,21 @@ function parseAny(h,source,base){
   });
 }
 function queries(task){return [task,task+" official",task+" reviews"];}
-async function jinaSearch(q){
-  const c=new AbortController();
-  const t=setTimeout(()=>c.abort(),12000);
-  try{
-    const r=await fetch("https://s.jina.ai/",{
-      method:"POST",
-      signal:c.signal,
-      headers:{
-        "Content-Type":"application/json",
-        "Accept":"application/json",
-        "User-Agent":"Mozilla/5.0 AlyOmegaResearch/4.0",
-        "X-No-Cache":"true"
-      },
-      body:JSON.stringify({q,options:"Default"})
-    });
-    const text=await r.text();
-    let data=null;
-    try{data=JSON.parse(text)}catch{}
-    if(!r.ok||!data?.data) return [];
-    return data.data.slice(0,10).map(x=>({
-      url:String(x.url||""),
-      title:clean(x.title||""),
-      snippet:clean(x.description||x.content||"")
-    })).filter(x=>/^https?:\/\//i.test(x.url)&&x.title&&!blocked.test(host(x.url)));
-  }catch{return []}finally{clearTimeout(t)}
-}
 async function search(task){
-  const responses=await Promise.all(queries(task).map(async q=>({source:"Jina Search",results:await jinaSearch(q)})));
+  const calls=[];
+  for(const q of queries(task)){
+    const e=encodeURIComponent(q);
+    calls.push(["Google HTML",\`https://www.google.com/search?q=\${e}&num=10\`]);
+    calls.push(["Bing HTML",\`https://www.bing.com/search?q=\${e}&count=10\`]);
+  }
+  const responses=await Promise.all(calls.map(async([source,url])=>{
+    const r=await get(url);
+    return r.ok?parseSearchHTML(r.text,url):[];
+  }));
   const map=new Map();
-  for(const p of responses) for(const x of p.results){
+  for(const list of responses) for(const x of list){
     const u=x.url.replace(/#.*$/,"");
-    if(!map.has(u)) map.set(u,{...x,url:u,domain:host(u),sources:[p.source]});
-    else map.get(u).sources.push(p.source);
+    if(!map.has(u)) map.set(u,{...x,url:u,domain:host(u),sources:[]});
   }
   const tokens=task.toLowerCase().split(/[^a-z0-9]+/).filter(w=>w.length>3&&!["find","best","with","from","that","this","near","into","for","and","the","hotels","hotel"].includes(w));
   const ranked=[...map.values()].map(x=>{
