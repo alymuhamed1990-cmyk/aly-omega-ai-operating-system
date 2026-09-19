@@ -58,7 +58,49 @@ function parseAny(h,source,base){
     return true;
   });
 }
-function queries(task){return [task,task+' official',task+' reviews'];}
-async function search(task){const calls=[];for(const q of queries(task)){const e=encodeURIComponent(q);calls.push(['Jina Search',`https://s.jina.ai/${e}`]);calls.push(['DuckDuckGo',`https://html.duckduckgo.com/html/?q=${e}`]);calls.push(['Brave',`https://search.brave.com/search?q=${e}`]);calls.push(['Jina Search',`https://s.jina.ai/${e}`]);}const responses=await Promise.all(calls.map(async([source,url])=>{const r=await get(url);return{source,status:r.status,ok:r.ok,raw:r.text,results:r.ok?parseAny(r.text,source,url):[]}}));const map=new Map();for(const p of responses)for(const x of p.results){const u=x.url.replace(/#.*$/,'');if(!map.has(u))map.set(u,{...x,url:u,domain:host(u),sources:[p.source]});else map.get(u).sources.push(p.source)}const tokens=task.toLowerCase().split(/[^a-z0-9]+/).filter(w=>w.length>3&&!['find','best','with','from','that','this','near','into','for','and','the','hotels','hotel'].includes(w));const ranked=[...map.values()].map(x=>{const text=(x.title+' '+x.snippet+' '+x.domain).toLowerCase();const score=tokens.reduce((n,t)=>n+(text.includes(t)?1:0),0);return{...x,score}}).filter(x=>tokens.length<2||x.score>0).sort((a,b)=>b.score-a.score);return {results:ranked.slice(0,15)}}
+function queries(task){return [task,task+" official",task+" reviews"];}
+async function jinaSearch(q){
+  const c=new AbortController();
+  const t=setTimeout(()=>c.abort(),12000);
+  try{
+    const r=await fetch("https://s.jina.ai/",{
+      method:"POST",
+      signal:c.signal,
+      headers:{
+        "Content-Type":"application/json",
+        "Accept":"application/json",
+        "User-Agent":"Mozilla/5.0 AlyOmegaResearch/4.0",
+        "X-No-Cache":"true"
+      },
+      body:JSON.stringify({q,options:"Default"})
+    });
+    const text=await r.text();
+    let data=null;
+    try{data=JSON.parse(text)}catch{}
+    if(!r.ok||!data?.data) return [];
+    return data.data.slice(0,10).map(x=>({
+      url:String(x.url||""),
+      title:clean(x.title||""),
+      snippet:clean(x.description||x.content||"")
+    })).filter(x=>/^https?:\/\//i.test(x.url)&&x.title&&!blocked.test(host(x.url)));
+  }catch{return []}finally{clearTimeout(t)}
+}
+async function search(task){
+  const responses=await Promise.all(queries(task).map(async q=>({source:"Jina Search",results:await jinaSearch(q)})));
+  const map=new Map();
+  for(const p of responses) for(const x of p.results){
+    const u=x.url.replace(/#.*$/,"");
+    if(!map.has(u)) map.set(u,{...x,url:u,domain:host(u),sources:[p.source]});
+    else map.get(u).sources.push(p.source);
+  }
+  const tokens=task.toLowerCase().split(/[^a-z0-9]+/).filter(w=>w.length>3&&!["find","best","with","from","that","this","near","into","for","and","the","hotels","hotel"].includes(w));
+  const ranked=[...map.values()].map(x=>{
+    const text=(x.title+" "+x.snippet+" "+x.domain).toLowerCase();
+    const score=tokens.reduce((n,t)=>n+(text.includes(t)?1:0),0);
+    return {...x,score};
+  }).sort((a,b)=>b.score-a.score);
+  const usable=ranked.filter(x=>tokens.length<2||x.score>0);
+  return (usable.length?usable:ranked).slice(0,15);
+}
 async function run(task,emit){await emit('INTAKE','Request understood',{activeAgents:1});await emit('SEARCH','Searching multiple live web sources',{activeAgents:3});const found=(await search(task)).results;await emit('EVIDENCE',`${found.length} unique results collected`,{activeAgents:2,count:found.length});const verified=found.filter(x=>x.domain&&x.title).map(x=>({...x,verification:'Source URL and result metadata present'}));await emit('VERIFY',`${verified.length} results passed basic evidence checks`,{activeAgents:2,count:verified.length});const final=verified.slice(0,10).map((x,i)=>({...x,rank:i+1}));await emit('FINAL',`Released ${final.length} evidence-backed results`,{activeAgents:1,count:final.length,released:true});return{results:final,message:final.length?'Results were collected from live web search and deduplicated across sources.':'No usable results were returned.'}}
 export default async function handler(req,res){const task=String(req.method==='POST'?(req.body?.task||''):(req.query?.task||'')).trim();if(!task)return res.status(400).json({error:'task is required'});res.writeHead(200,{'Content-Type':'text/event-stream; charset=utf-8','Cache-Control':'no-cache, no-transform','Connection':'keep-alive','X-Accel-Buffering':'no'});const send=o=>res.write(`data: ${JSON.stringify(o)}\n\n`);try{const data=await run(task,(stage,message,p)=>send({type:'stage',stage,message,...p}));send({type:'complete',data});res.end()}catch(e){send({type:'error',message:e.message||String(e)});res.end()}}
