@@ -60,6 +60,33 @@ function parseAny(h,source,base){
   });
 }
 function queries(task){return [task,task+" official",task+" reviews"];}
+async function jinaSearch(q){
+  const key=process.env.JINA_API_KEY;
+  if(!key) return [];
+  const c=new AbortController();
+  const t=setTimeout(()=>c.abort(),12000);
+  try{
+    const r=await fetch("https://s.jina.ai/",{
+      method:"POST",
+      signal:c.signal,
+      headers:{
+        "Authorization":"Bearer "+key,
+        "Content-Type":"application/json",
+        "Accept":"application/json",
+        "X-No-Cache":"true"
+      },
+      body:JSON.stringify({q,options:"Default"})
+    });
+    if(!r.ok) return [];
+    const data=await r.json();
+    return Array.isArray(data?.data)?data.data.slice(0,10).map(x=>({
+      url:String(x.url||""),
+      title:clean(x.title||""),
+      snippet:clean(x.description||x.content||"")
+    })).filter(x=>/^https?:\/\//i.test(x.url)&&x.title&&!blocked.test(host(x.url))):[];
+  }catch{return []}finally{clearTimeout(t)}
+}
+
 async function search(task){
   const calls=[];
   for(const q of queries(task)){
@@ -70,10 +97,12 @@ async function search(task){
   }
   const responses=await Promise.all(calls.map(async([source,url])=>{
     const r=await get(url);
-    const parsed=r.ok?parseSearchHTML(r.text,url):[]; console.log('SEARCH_PROVIDER',source,r.status,parsed.length); return parsed;
+    return r.ok?parseSearchHTML(r.text,url):[];
   }));
+  const jinaResults=await Promise.all(queries(task).map(q=>jinaSearch(q)));
+  const allResponses=[...responses,...jinaResults];
   const map=new Map();
-  for(const list of responses) for(const x of list){
+  for(const list of allResponses) for(const x of list){
     const u=x.url.replace(/#.*$/,"");
     if(!map.has(u)) map.set(u,{...x,url:u,domain:host(u),sources:[]});
   }
@@ -86,5 +115,5 @@ async function search(task){
   const usable=ranked.filter(x=>tokens.length<2||x.score>0);
   return (usable.length?usable:ranked).slice(0,15);
 }
-async function run(task,emit){await emit('INTAKE','Request understood',{activeAgents:1});await emit('SEARCH','Searching multiple live web sources',{activeAgents:3});const found=await search(task);await emit('EVIDENCE',`${found.length} unique results collected`,{activeAgents:2,count:found.length});const verified=found.filter(x=>x.domain&&x.title).map(x=>({...x,verification:'Source URL and result metadata present'}));await emit('VERIFY',`${verified.length} results passed basic evidence checks`,{activeAgents:2,count:verified.length});const final=verified.slice(0,10).map((x,i)=>({...x,rank:i+1}));await emit('FINAL',`Released ${final.length} evidence-backed results`,{activeAgents:1,count:final.length,released:true});return{results:final,message:final.length?'Results were collected from live web search and deduplicated across sources.':'No usable results were returned.'}}
+async function run(task,emit){await emit('INTAKE','Request understood',{activeAgents:1});await emit('SEARCH','Searching multiple live web sources',{activeAgents:3});const found=await search(task);await emit('EVIDENCE',`${found.length} unique results collected`,{activeAgents:2,count:found.length});const verified=found.filter(x=>x.domain&&x.title).map(x=>({...x,verification:'Source URL and result metadata present'}));await emit('VERIFY',`${verified.length} results passed basic evidence checks`,{activeAgents:2,count:verified.length});const final=verified.slice(0,10).map((x,i)=>({...x,rank:i+1}));if(!final.length){await emit('VERIFY','No validated search evidence available',{activeAgents:1,count:0});await emit('FINAL','Not released — no validated results',{activeAgents:0,count:0,released:false});return{results:[],message:'No validated live-search results were available.'}} await emit('FINAL',`Released ${final.length} evidence-backed results`,{activeAgents:1,count:final.length,released:true});return{results:final,message:final.length?'Results were collected from live web search and deduplicated across sources.':'No usable results were returned.'}}
 export default async function handler(req,res){const task=String(req.method==='POST'?(req.body?.task||''):(req.query?.task||'')).trim();if(!task)return res.status(400).json({error:'task is required'});res.writeHead(200,{'Content-Type':'text/event-stream; charset=utf-8','Cache-Control':'no-cache, no-transform','Connection':'keep-alive','X-Accel-Buffering':'no'});const send=o=>res.write(`data: ${JSON.stringify(o)}\n\n`);try{const data=await run(task,(stage,message,p)=>send({type:'stage',stage,message,...p}));send({type:'complete',data});res.end()}catch(e){send({type:'error',message:e.message||String(e)});res.end()}}
