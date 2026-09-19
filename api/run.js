@@ -66,6 +66,7 @@ async function search(task){
     const e=encodeURIComponent(q);
     calls.push(["Google HTML",`https://www.google.com/search?q=${e}&num=10`]);
     calls.push(["Bing HTML",`https://www.bing.com/search?q=${e}&count=10`]);
+    calls.push(["Yahoo HTML",`https://search.yahoo.com/search?p=${e}`]);
   }
   const responses=await Promise.all(calls.map(async([source,url])=>{
     const r=await get(url);
