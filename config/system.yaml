@@ -1,20 +1,59 @@
 system:
   name: Aly Omega AI Operating System
-  version: 2.1.0
+  version: 4.0.0
   mode: production
   evidence_first: true
+  deep_web_research: true
   explicit_assumptions: true
+  no_search_before_intake_lock: true
   default_confidence_threshold: 0.80
 
 orchestrator:
-  max_parallel_agents: 8
+  max_parallel_agents: 16
   require_acp: true
   require_validation_between_stages: true
   require_final_gatekeeper: true
 
+intake:
+  mandatory: true
+  blocking: true
+  required_fields:
+    - objective
+    - entity_type
+    - geography
+    - mandatory_constraints
+    - preferences
+    - exclusions
+    - time_scope
+    - evidence_standard
+    - output_format
+  ambiguity_action: ASK_HUMAN
+  lock_name: INTAKE_LOCK
+
+research:
+  mode: deep_web
+  search_engines_are_discovery_only: true
+  direct_source_inspection_required: true
+  cross_source_verification_required: true
+  contradiction_search_required: true
+  source_classes:
+    - official_company
+    - government_or_regulatory
+    - professional_profile
+    - industry_publication
+    - reputable_news
+    - case_study
+    - partner_or_supplier
+    - structured_database
+    - search_engine
+
 quality_gates:
   evidence:
     required_for: [research, analysis, recommendation, supplier, commercial, decision]
+  identity:
+    required: true
+  temporal:
+    required: true
   constraint:
     required: true
   contradiction:
@@ -24,16 +63,18 @@ quality_gates:
   final_gate:
     required_for: [external_output, consequential_decision, customer_commitment, supplier_commitment]
 
-communication:
-  protocol: ACP
-  fields: [TASK, CONTEXT, EVIDENCE, FINDINGS, ASSUMPTIONS, RISKS, CONFIDENCE, RECOMMENDATION, DEPENDENCIES, VALIDATION_STATUS]
-
-job_search:
-  evaluation_order: [industry, business_model, functional_fit, seniority, location_eligibility, current_status, career_value, recommendation]
-  title_only_matching: false
+claim_states:
+  - CONFIRMED
+  - STRONG_EVIDENCE
+  - PROBABLE
+  - UNVERIFIED
+  - CONTRADICTED
+  - OUTDATED
+  - HYPOTHESIS
 
 learning:
   capture_failures: true
   capture_corrections: true
   update_playbooks: true
   preserve_human_overrides: true
+  never_silently_rewrite_intake: true
