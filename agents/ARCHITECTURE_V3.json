@@ -1,37 +1,64 @@
 {
-  "architecture": "Aly Omega V3",
-  "version": "3.0.0",
-  "design_principle": "Hierarchical multi-agent operating network with deterministic routing, shared ACP language, validation gates, and scalable specialization.",
+  "architecture": "Aly Omega V4 — Evidence-First Deep Research",
+  "version": "4.0.0",
+  "design_principle": "Human-locked intake, multi-source deep research, evidence-led verification, identity resolution, contradiction challenge, and final release gating.",
   "logical_agent_capacity": 4096,
   "layers": [
-    {"id":"L0","name":"Human Intent","role":"business intent, request, constraints, desired outcome","capacity":1},
+    {"id":"L0","name":"Human Intent","role":"business objective, constraints, exclusions, desired outcome","capacity":1},
     {"id":"L1","name":"Executive Intelligence","role":"priority, strategic context, decision framing","capacity":32},
     {"id":"L2","name":"Global Orchestrator","role":"task decomposition, routing, state, dependency graph","capacity":16},
-    {"id":"L3","name":"Domain Orchestrators","role":"domain-level coordination and workload distribution","capacity":64},
+    {"id":"L3","name":"Domain Orchestrators","role":"domain coordination and workload distribution","capacity":64},
     {"id":"L4","name":"Domain Managers","role":"supervision of specialist clusters","capacity":160},
     {"id":"L5","name":"Specialist Agents","role":"domain expertise and task execution","capacity":512},
     {"id":"L6","name":"Expert Sub-Agents","role":"narrow expertise, verification, synthesis, optimization","capacity":1024},
-    {"id":"L7","name":"Micro Agents","role":"atomic reasoning, extraction, comparison, transformation","capacity":1536},
-    {"id":"L8","name":"Evidence & Tool Agents","role":"web, documents, APIs, structured data, calculations","capacity":512},
-    {"id":"L9","name":"Validation & Red Team","role":"constraint, evidence, contradiction, risk and adversarial checks","capacity":128},
+    {"id":"L7","name":"Micro Agents","role":"atomic extraction, comparison, normalization, evidence mapping","capacity":1536},
+    {"id":"L8","name":"Evidence & Tool Agents","role":"search engines, official sites, registries, company databases, publications, documents, APIs and structured data","capacity":512},
+    {"id":"L9","name":"Validation & Red Team","role":"constraint, source, identity, contradiction, risk and adversarial checks","capacity":128},
     {"id":"L10","name":"Learning & Memory","role":"feedback, error learning, memory consolidation, routing optimization","capacity":96},
     {"id":"L11","name":"Final Gatekeeper","role":"release decision, output integrity, audit trail","capacity":15}
   ],
-  "communication_protocol": {
-    "name":"ACP-X",
-    "version":"3.0",
-    "required_fields":["MESSAGE_ID","TASK","OBJECTIVE","CONTEXT","SCOPE","CAPABILITY_REQUIRED","EVIDENCE","FINDINGS","ASSUMPTIONS","RISKS","CONFIDENCE","DEPENDENCIES","REQUEST","RESPONSE","HANDOFF","VALIDATION_STATUS","ESCALATION","MEMORY_SIGNAL","LEARNING_SIGNAL","TRACE_ID"],
-    "rules":["Agents never depend on free-form hidden state between stages.","Every handoff carries a trace id.","Evidence is distinguishable from findings and assumptions.","Validation status is explicit and must be updated at gates.","Agents may request escalation instead of bypassing authority.","Only authorized layers may mutate shared state."]
+  "research_control_plane": {
+    "intake_gate": {
+      "mandatory": true,
+      "search_blocked_until_locked": true,
+      "required_resolution": ["objective","entity_type","geography","mandatory_constraints","preferences","exclusions","time_scope","evidence_standard","output_format"],
+      "ambiguity_policy": "Ask the human before search when an unresolved ambiguity can materially change the result set."
+    },
+    "research_mode": {
+      "default": "deep_web",
+      "search_engine_role": "discovery_only",
+      "required_layers": ["search_discovery","direct_source_inspection","cross_source_verification","contradiction_search"],
+      "principle": "Search results are leads, never evidence."
+    },
+    "verification_pipeline": [
+      "Evidence Collection",
+      "Source Quality",
+      "Entity Identity Resolution",
+      "Temporal Validation",
+      "Cross-Source Verification",
+      "Contradiction Challenge",
+      "Confidence Calibration",
+      "Final Release"
+    ],
+    "claim_states": ["CONFIRMED","STRONG_EVIDENCE","PROBABLE","UNVERIFIED","CONTRADICTED","OUTDATED","HYPOTHESIS"]
   },
   "routing_model": {
     "default":"hierarchical",
-    "patterns":["parent-child delegation","specialist fan-out","evidence fan-out","validation fan-in","red-team challenge","final synthesis"],
+    "patterns":["intake_lock","specialist_fanout","evidence_fanout","verification_fanin","contradiction_challenge","final_synthesis"],
     "dynamic_depth":true,
     "max_parallel_branches":32,
     "fallback_required":true,
-    "human_approval_points":["external commitment","financial commitment","policy exception","high-risk release"]
+    "human_approval_points":["ambiguous_intake","external_commitment","financial_commitment","policy_exception","high-risk release"]
   },
-  "quality_gates":["Intake Gate","Classification Gate","Evidence Gate","Constraint Gate","Commercial Gate","Operations Gate","Validation Gate","Red Team Gate","Learning Gate","Final Release Gate"],
+  "quality_gates":["Intake Gate","Classification Gate","Evidence Gate","Identity Gate","Temporal Gate","Constraint Gate","Contradiction Gate","Red Team Gate","Final Release Gate","Learning Gate"],
+  "non_negotiable_rules": [
+    "No search before Intake Lock.",
+    "No claim without inspectable evidence.",
+    "No competitor or provider gap may be inferred from generic feature absence.",
+    "Unknown remains unknown until validated.",
+    "The system must actively search for disconfirming evidence.",
+    "Human corrections become explicit learning signals, never silent prompt mutations."
+  ],
   "visualization": {
     "agent_rendering":"points",
     "space":"large_spherical_field",
