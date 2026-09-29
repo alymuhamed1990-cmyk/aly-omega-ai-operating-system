@@ -1,27 +1,43 @@
 {
-  "version":"3.0.0",
-  "architecture":"Aly Omega V3",
-  "core_agents":168,
+  "version":"4.0.0",
+  "architecture":"Aly Omega V4 — Evidence-First Deep Research",
+  "core_agents":184,
   "logical_agent_capacity":4096,
   "instantiation_model":"lazy-specialization",
-  "note":"4096 logical agent slots are defined by capability and specialization rules. They do not imply 4096 independent model processes running simultaneously.",
-  "domains": {
-    "core":{"manager_count":16,"specialist_count":96,"micro_count":256},
-    "intelligence":{"manager_count":16,"specialist_count":96,"micro_count":384},
-    "commercial":{"manager_count":16,"specialist_count":96,"micro_count":256},
+  "domains":{
+    "core":{"manager_count":16,"specialist_count":104,"micro_count":256},
+    "intelligence":{"manager_count":16,"specialist_count":112,"micro_count":384},
+    "commercial":{"manager_count":16,"specialist_count":104,"micro_count":256},
     "operations":{"manager_count":16,"specialist_count":96,"micro_count":256},
-    "quality":{"manager_count":16,"specialist_count":64,"micro_count":160},
+    "quality":{"manager_count":16,"specialist_count":80,"micro_count":192},
     "learning":{"manager_count":16,"specialist_count":64,"micro_count":128},
     "executive":{"manager_count":16,"specialist_count":64,"micro_count":96},
-    "evidence_tools":{"manager_count":16,"specialist_count":96,"micro_count":256}
+    "evidence_tools":{"manager_count":16,"specialist_count":112,"micro_count":256}
   },
-  "agent_naming":{
-    "pattern":"OMEGA-{LAYER}-{DOMAIN}-{CAPABILITY}-{INSTANCE}",
-    "example":"OMEGA-L7-INTEL-EVIDENCE-0042",
-    "stable_ids":true,
-    "human_labels_hidden_in_visualization":true
-  },
-  "specialization_axes":["destination","product","customer_segment","supplier_type","language","market","channel","workflow_stage","evidence_type","risk_class","tool_capability","commercial_model"],
+  "mandatory_research_agents":[
+    {"id":"OMEGA-L5-CORE-INTAKE-GATE","role":"Locks human intent before research and requests clarification when material ambiguity exists."},
+    {"id":"OMEGA-L5-INTEL-DEEP-RESEARCH","role":"Coordinates multi-source web research beyond a single search engine."},
+    {"id":"OMEGA-L6-EVIDENCE-DIRECT-SOURCE","role":"Inspects original pages/documents rather than trusting result snippets."},
+    {"id":"OMEGA-L6-QUALITY-SOURCE-VERIFY","role":"Checks source quality, recency, provenance and claim support."},
+    {"id":"OMEGA-L6-INTEL-IDENTITY-RESOLUTION","role":"Confirms company/person/entity identity across conflicting web records."},
+    {"id":"OMEGA-L6-INTEL-TEMPORAL-VERIFY","role":"Checks whether evidence is current, historical or outdated."},
+    {"id":"OMEGA-L6-QUALITY-CONTRADICTION-HUNTER","role":"Actively searches for evidence that could disprove or qualify a finding."},
+    {"id":"OMEGA-L6-QUALITY-EVIDENCE-GRADER","role":"Assigns explicit evidence states and calibrated confidence."},
+    {"id":"OMEGA-L5-INTEL-RESEARCH-SYNTHESIZER","role":"Builds findings only from validated evidence and keeps hypotheses separate."},
+    {"id":"OMEGA-L5-QUALITY-FINAL-RELEASE","role":"Blocks unsupported or intake-misaligned output."}
+  ],
+  "agent_naming":{"pattern":"OMEGA-{LAYER}-{DOMAIN}-{CAPABILITY}-{INSTANCE}","stable_ids":true,"human_labels_hidden_in_visualization":true},
+  "specialization_axes":["destination","product","customer_segment","supplier_type","language","market","channel","workflow_stage","evidence_type","risk_class","tool_capability","commercial_model","source_type","temporal_scope"],
   "allowed_layers":["L1","L2","L3","L4","L5","L6","L7","L8","L9","L10","L11"],
-  "orchestration_rules":["A parent assigns work only to compatible children.","A child returns ACP-X output to its parent.","Cross-domain transfers pass through an orchestrator or explicit capability bridge.","Quality layers can challenge upstream outputs.","Learning signals update routing and playbooks but do not silently alter released results.","Final Gatekeeper releases only validated outputs."]
+  "orchestration_rules":[
+    "Intake Gate must lock the task before research agents are activated.",
+    "A parent assigns work only to compatible children.",
+    "A child returns ACP-X output to its parent.",
+    "Search engines discover candidates; direct sources establish evidence.",
+    "Identity and temporal checks precede release.",
+    "Quality layers can challenge upstream outputs.",
+    "Contradiction agents are expected to seek disconfirming evidence, not merely confirm the lead.",
+    "Final Gatekeeper releases only validated outputs.",
+    "Human corrections are preserved as explicit learning signals."
+  ]
 }
